@@ -2,38 +2,80 @@ const axios = require("axios");
 require("dotenv").config();
 
 const INFURA_API_KEY = process.env.INFURA_API_KEY;
+const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY;
 
-const getGasPrice = async () => {
+const COINMARKETCAP_CURRENCY_IDS = {
+  NEAR: 6535,
+  ETH: 1027,
+  TIA: 22861,
+};
+
+const fetchPrice = async (currency_name) => {
+  id = COINMARKETCAP_CURRENCY_IDS[currency_name];
   try {
-    // Get ETH gas price
-    const ethResponse = await axios.post(
-      `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
-      {
-        jsonrpc: "2.0",
-        method: "eth_gasPrice",
-        params: [],
-        id: 1,
-      }
-    );
-    const ethGasPrice = parseInt(ethResponse.data.result, 16);
-    console.log(`Current ETH Gas Price: ${ethGasPrice} wei`);
+    const url = `https://pro-api.coinmarketcap.com/v2/tools/price-conversion`;
+    const params = {
+      amount: 1,
+      id: id,
+    };
+    const headers = {
+      "X-CMC_PRO_API_KEY": COINMARKETCAP_API_KEY,
+    };
 
-    // Get NEAR gas price
-    const nearResponse = await axios.post(
-      `https://near-mainnet.infura.io/v3/${INFURA_API_KEY}`,
-      {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "gas_price",
-        params: [null], // You can specify a block height here if needed
-      }
-    );
+    const response = await axios.get(url, { params, headers });
+    const price = response.data.data.quote["USD"].price;
 
-    const nearGasPrice = nearResponse.data.result.gas_price;
-    console.log(`Current NEAR Gas Price: ${nearGasPrice} yoctoNEAR`);
+    console.log(`1 ${currency_name} is equal to ${price}`);
+    return price;
+  } catch (error) {
+    console.error("Error occurred:", error);
+  }
+};
+
+const fetchGasPrice = async (currency_name) => {
+  // Get gas price
+  // currency_name: ETH or NEAR
+  try {
+    let response, gasPrice;
+
+    if (currency_name === "ETH") {
+      // Get ETH gas price
+      response = await axios.post(
+        `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
+        {
+          jsonrpc: "2.0",
+          method: "eth_gasPrice",
+          params: [],
+          id: 1,
+        }
+      );
+      gasPrice = parseInt(response.data.result, 16);
+      console.log(`Current ETH Gas Price: ${gasPrice} wei`);
+    } else if (currency_name === "NEAR") {
+      // Get NEAR gas price
+      response = await axios.post(
+        `https://near-mainnet.infura.io/v3/${INFURA_API_KEY}`,
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "gas_price",
+          params: [null], // You can specify a block height here if needed
+        }
+      );
+      gasPrice = response.data.result.gas_price;
+      console.log(`Current NEAR Gas Price: ${gasPrice} yoctoNEAR`);
+    } else {
+      console.error("Unsupported currency");
+      return;
+    }
+
+    return gasPrice;
   } catch (error) {
     console.error("Error fetching gas price:", error);
   }
 };
 
-getGasPrice();
+// Example usage
+currency_name = "ETH";
+fetchPrice(currency_name);
+fetchGasPrice(currency_name);
