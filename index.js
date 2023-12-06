@@ -1,6 +1,8 @@
 const axios = require("axios");
 require("dotenv").config();
 
+import { defaultEstimateGas } from "./celestia";
+
 const INFURA_API_KEY = process.env.INFURA_API_KEY;
 const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY;
 
@@ -32,9 +34,10 @@ const fetchPrice = async (currency_name) => {
   }
 };
 
-const fetchGasPrice = async (currency_name) => {
+const fetchGasPrice = async (currency_name, blobSizes) => {
   // Get gas price
   // currency_name: ETH or NEAR
+  // blobSizes: array of blob sizes or undefined if currency_name is ETH or NEAR
   try {
     let response, gasPrice;
 
@@ -64,6 +67,15 @@ const fetchGasPrice = async (currency_name) => {
       );
       gasPrice = response.data.result.gas_price;
       console.log(`Current NEAR Gas Price: ${gasPrice} yoctoNEAR`);
+    } else if (currency_name === "TIA") {
+      // Get TIA gas price
+      if (blobSizes === undefined) {
+        console.error("Blob sizes must be specified for TIA");
+        return;
+      }
+
+      gas = defaultEstimateGas(blobSizes);
+      return gas;
     } else {
       console.error("Unsupported currency");
       return;
