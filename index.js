@@ -1,4 +1,5 @@
 const axios = require("axios");
+const express = require("express");
 require("dotenv").config();
 
 const {
@@ -16,8 +17,6 @@ const COINMARKETCAP_CURRENCY_IDS = {
   ETH: 1027,
   TIA: 22861,
 };
-
-// TODO: Need to abstract it such that whenever the servcer is called, the user can just say I need to send X amount of data to Y blockchain
 
 // Fetches the price of a currency in USD
 const fetchPrice = async (currency_name) => {
@@ -200,12 +199,3 @@ async function estimateFeeNEAR(blobSizes) {
     return null;
   }
 }
-
-// This is the new async function wrapper
-async function main() {
-  const near = await estimateFeeNEAR([16000000]);
-  let eth = await estimateFeeETH([16000000]);
-  let tia = await estimateFeeTIA([16000000]);
-}
-
-main();
