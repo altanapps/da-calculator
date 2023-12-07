@@ -201,8 +201,10 @@ async function estimateFeeNEAR(blobSizes) {
 }
 
 // Returns the estimated fee in the Ethereum blockchain
+
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Use the PORT environment variable if available
+const host = "0.0.0.0"; // Listen on all network interfaces
 
 app.use(express.json());
 
@@ -225,6 +227,18 @@ app.get("/estimateFee/:blobSizes", async (req, res) => {
   }
 });
 
+const rateLimit = require("express-rate-limit");
+
+// Set up rate limiter: maximum of 100 requests per minute
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // limit each IP to 100 requests per windowMS
+  message: "Too many requests from this IP, please try again later",
+});
+
+// Apply to all requests
+app.use(limiter);
+
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Example app listening at http://${host}:${port}`);
 });
