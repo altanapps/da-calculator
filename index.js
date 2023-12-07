@@ -120,7 +120,7 @@ async function estimateFeeETH(blobSizes) {
 
 async function estimateFeeTIA(blobSizes) {
   try {
-    let fee = await estimateFee([blobSizes]);
+    let fee = await estimateFee(blobSizes);
     // convert uTIA to TIA
     let tiaFee = fee / 10 ** 6;
     let price = await fetchPrice("TIA");
