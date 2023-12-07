@@ -17,6 +17,7 @@ RUN npm install --only=production
 COPY . .
 
 # Set the environment variables (set these with your own values)
+# SET THIS BEFORE DEPLOYMENT
 ENV INFURA_API_KEY="YOUR_INFURA_API_KEY"
 ENV COINMARKETCAP_API_KEY="YOUR_COINMARKETCAP_API_KEY"
 

@@ -11,6 +11,7 @@ const INFURA_API_KEY = process.env.INFURA_API_KEY;
 const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY;
 
 const CALLDATA_GAS_PER_BYTE = 16;
+const TRANSACTION_FEE = 21000;
 
 const COINMARKETCAP_CURRENCY_IDS = {
   NEAR: 6535,
@@ -104,17 +105,14 @@ const fetchGasPrice = async (currency_name, blobSizes) => {
 // Returns the estimated fee in the Ethereum blockchain
 // Assumes no priority fee
 async function estimateFeeETH(blobSizes) {
-  const gasPrice = await fetchGasPrice("ETH");
+  const gasPrice = (await fetchGasPrice("ETH")) / 10 ** 9;
   const ethPrice = await fetchPrice("ETH");
   var totalFee = 0;
 
   // Iterate through each blob size
   for (blob of blobSizes) {
-    totalFee += blob * CALLDATA_GAS_PER_BYTE * gasPrice;
+    totalFee += ((16 * blob + 21000) * 10 * ethPrice * gasPrice) / 10 ** 9;
   }
-
-  // Convert wei to ETH
-  totalFee = (totalFee / 10 ** 18) * ethPrice;
   return totalFee;
 }
 
