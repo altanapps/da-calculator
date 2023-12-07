@@ -120,7 +120,7 @@ async function estimateFeeETH(blobSizes) {
 
 async function estimateFeeTIA(blobSizes) {
   try {
-    let fee = await estimateFee([16000000]);
+    let fee = await estimateFee([blobSizes]);
     // convert uTIA to TIA
     let tiaFee = fee / 10 ** 6;
     let price = await fetchPrice("TIA");
@@ -199,3 +199,32 @@ async function estimateFeeNEAR(blobSizes) {
     return null;
   }
 }
+
+// Returns the estimated fee in the Ethereum blockchain
+const app = express();
+const port = 3000;
+
+app.use(express.json());
+
+// Endpoint for fetching price
+app.get("/estimateFee/:blobSizes", async (req, res) => {
+  try {
+    const ethFee = await estimateFeeETH(req.params.blobSizes);
+    const nearFee = await estimateFeeNEAR(req.params.blobSizes);
+    const tiaFee = await estimateFeeTIA(req.params.blobSizes);
+
+    const result = {
+      ETH: ethFee,
+      NEAR: nearFee,
+      TIA: tiaFee,
+    };
+
+    res.json(result);
+  } catch {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`);
+});
