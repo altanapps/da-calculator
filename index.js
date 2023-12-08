@@ -105,20 +105,31 @@ const fetchGasPrice = async (currency_name, blobSizes) => {
 // Returns the estimated fee in the Ethereum blockchain
 // Assumes no priority fee
 async function estimateFeeETH(blobSizes) {
-  const gasPrice = (await fetchGasPrice("ETH")) / 10 ** 9;
-  const ethPrice = await fetchPrice("ETH");
-  var totalFee = 0;
-
+  // https://docs.infura.io/networks/ethereum/json-rpc-methods/eth_gasprice
+  const gasPrice = (await fetchGasPrice("ETH")) / 10 ** 9; // convert from gwei to wei
+  var totalGas = 0;
   // Iterate through each blob size
   for (blob of blobSizes) {
-    totalFee += ((16 * blob + 21000) * 10 * ethPrice * gasPrice) / 10 ** 9;
+    console.log(blob);
+    totalGas += 16 * blob + 21000;
   }
+
+  // This is the total fee in gwei
+  var totalFee = totalGas * gasPrice;
+  const ethPrice = await fetchPrice("ETH");
+
+  // Convert from gwei to ETH
+  totalFee = totalFee / 10 ** 9; // convert from wei to ETH
+
+  // Convert from ETH to USD
+  totalFee = totalFee * ethPrice;
   return totalFee;
 }
 
 async function estimateFeeTIA(blobSizes) {
   try {
     let fee = await estimateFee(blobSizes);
+    console.log(fee);
     // convert uTIA to TIA
     let tiaFee = fee / 10 ** 6;
     let price = await fetchPrice("TIA");
@@ -198,45 +209,55 @@ async function estimateFeeNEAR(blobSizes) {
   }
 }
 
-// Returns the estimated fee in the Ethereum blockchain
-
-const app = express();
-const port = process.env.PORT || 3000; // Use the PORT environment variable if available
-const host = "0.0.0.0"; // Listen on all network interfaces
-
-app.use(express.json());
-
-// Endpoint for fetching price
-app.get("/estimateFee/:blobSizes", async (req, res) => {
-  try {
-    const ethFee = await estimateFeeETH(req.params.blobSizes);
-    const nearFee = await estimateFeeNEAR(req.params.blobSizes);
-    const tiaFee = await estimateFeeTIA(req.params.blobSizes);
-
-    const result = {
-      ETH: ethFee,
-      NEAR: nearFee,
-      TIA: tiaFee,
-    };
-
-    res.json(result);
-  } catch {
-    res.status(500).send("Internal Server Error");
+async function main() {
+  // Let's try with a couple of blobs
+  const blobSizes = [220000];
+  for (let blob of blobSizes) {
+    console.log("Blob size:", blob);
+    console.log("USD:", await estimateFeeETH([blob]));
   }
-});
+}
 
-const rateLimit = require("express-rate-limit");
+main();
 
-// Set up rate limiter: maximum of 100 requests per minute
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 100, // limit each IP to 100 requests per windowMS
-  message: "Too many requests from this IP, please try again later",
-});
+// Returns the estimated fee in the Ethereum blockchain
+// const app = express();
+// const port = process.env.PORT || 3000; // Use the PORT environment variable if available
+// const host = "0.0.0.0"; // Listen on all network interfaces
 
-// Apply to all requests
-app.use(limiter);
+// app.use(express.json());
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://${host}:${port}`);
-});
+// // Endpoint for fetching price
+// app.get("/estimateFee/:blobSizes", async (req, res) => {
+//   try {
+//     const ethFee = await estimateFeeETH(req.params.blobSizes);
+//     const nearFee = await estimateFeeNEAR(req.params.blobSizes);
+//     const tiaFee = await estimateFeeTIA(req.params.blobSizes);
+
+//     const result = {
+//       ETH: ethFee,
+//       NEAR: nearFee,
+//       TIA: tiaFee,
+//     };
+
+//     res.json(result);
+//   } catch {
+//     res.status(500).send("Internal Server Error");
+//   }
+// });
+
+// const rateLimit = require("express-rate-limit");
+
+// // Set up rate limiter: maximum of 100 requests per minute
+// const limiter = rateLimit({
+//   windowMs: 1 * 60 * 1000, // 1 minute
+//   max: 100, // limit each IP to 100 requests per windowMS
+//   message: "Too many requests from this IP, please try again later",
+// });
+
+// // Apply to all requests
+// app.use(limiter);
+
+// app.listen(port, () => {
+//   console.log(`Example app listening at http://${host}:${port}`);
+// });
