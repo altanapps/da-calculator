@@ -113,7 +113,7 @@ async function estimateFeeETH(blobSizes) {
   }
 
   // This is the total fee in gwei
-  var totalFee = totalGas/2 * gasPrice;
+  var totalFee = (totalGas / 2) * gasPrice;
   const ethPrice = await fetchPrice("ETH");
 
   // Convert from gwei to ETH
