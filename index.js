@@ -106,7 +106,7 @@ const fetchGasPrice = async (currency_name, blobSizes) => {
 // Assumes no priority fee
 async function estimateFeeETH(blobSizes) {
   // https://docs.infura.io/networks/ethereum/json-rpc-methods/eth_gasprice
-  const gasPrice = (await fetchGasPrice("ETH")) / 10 ** 9; // convert from gwei to wei
+  const gasPrice = (await fetchGasPrice("ETH")) / 10 ** 9; // convert from wei to gwei
   var totalGas = 0;
   // Iterate through each blob size
   for (blob of blobSizes) {
@@ -115,7 +115,7 @@ async function estimateFeeETH(blobSizes) {
   }
 
   // This is the total fee in gwei
-  var totalFee = totalGas * gasPrice;
+  var totalFee = totalGas/2 * 35.108276612;
   const ethPrice = await fetchPrice("ETH");
 
   // Convert from gwei to ETH
@@ -211,7 +211,7 @@ async function estimateFeeNEAR(blobSizes) {
 
 async function main() {
   // Let's try with a couple of blobs
-  const blobSizes = [220000];
+  const blobSizes = [231672];
   for (let blob of blobSizes) {
     console.log("Blob size:", blob);
     console.log("USD:", await estimateFeeETH([blob]));
