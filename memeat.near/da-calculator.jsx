@@ -74,7 +74,6 @@ const Table = () => {
   );
 };
 
-
 const FormInputTitle = styled.div`
   font-size: 18px;
   font-weight: bold;
@@ -152,37 +151,24 @@ State.init({
   tab: "DA Calculator", // Mint / Indexer / Transfer
 });
 
-const fetchDACalculatorData =  (blobSizes) => {
-  try {
-    console.log("blobSize", blobSizes)
-    const response = fetch(
-      "https://da-calculator-697b837afec5.herokuapp.com/estimateFee",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ blobSizes: [blobSizes] }),
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = response.json();
-    return data; // This is the response data from the API
-  } catch (error) {
-    console.error("Could not fetch data from DA Calculator:", error);
-  }
+const fetchDACalculatorData = (blobSizes) => {
+  return asyncFetch(
+    "https://da-calculator-697b837afec5.herokuapp.com/estimateFee",
+    {
+      body: `{ "blobSizes": "[${blobSizes}]" }`,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
 };
 
-const handleSubmit =  (event) => {
+const handleSubmit = (event) => {
   event.preventDefault(); // Prevent the default form submission behavior
-  const result = fetchDACalculatorData(state.dataToSend);
-  // Here you can set the state with the result or process it as needed
-  console.log("result", result);
-  State.update({ result });
-  return result; // For demonstration purposes, we're just logging it
+
+  fetchDACalculatorData(state.dataToSend).then((res) => {
+    console.log(res);
+  });
 };
 
 var { tab, dataToSend, result } = state;
