@@ -1,6 +1,16 @@
 const axios = require("axios");
 const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
+
+// Allowing cors to be called by the frontend
+CLIENT_ORIGIN = "https://da-calculator-frontend.vercel.app/";
+const cors = require("cors");
+app.use(
+  cors({
+    origin: CLIENT_ORIGIN,
+  })
+);
 
 const {
   estimateFee,
@@ -98,7 +108,8 @@ const fetchGasPrice = async (currency_name, blobSizes) => {
     }
     return gasPrice;
   } catch (error) {
-throw error;  }
+    throw error;
+  }
 };
 
 // Returns the estimated fee in the Ethereum blockchain
@@ -167,14 +178,27 @@ async function estimateFeeNEAR(blobSizes) {
       "https://docs-demo.near-mainnet.quiknode.pro/",
       requestOptions
     );
-    const gas_fee_rates = JSON.parse(await response.text()).result.runtime_config.transaction_costs;
+    const gas_fee_rates = JSON.parse(await response.text()).result
+      .runtime_config.transaction_costs;
     if (gas_fee_rates) {
       try {
-        const startup_cost = gas_fee_rates.action_receipt_creation_config.send_sir + gas_fee_rates.action_receipt_creation_config.execution;
-        const function_call_base_cost = gas_fee_rates.action_creation_config.function_call_cost.send_sir + gas_fee_rates.action_creation_config.function_call_cost.execution;
+        const startup_cost =
+          gas_fee_rates.action_receipt_creation_config.send_sir +
+          gas_fee_rates.action_receipt_creation_config.execution;
+        const function_call_base_cost =
+          gas_fee_rates.action_creation_config.function_call_cost.send_sir +
+          gas_fee_rates.action_creation_config.function_call_cost.execution;
         var totalFee = 0;
         for (let blob of blobSizes) {
-          totalFee += (blob + NEAR_DA_FUNCTION_CALL_METHOD_NAME_BYTE_SIZE) * gas_fee_rates.action_creation_config.function_call_cost_per_byte.send_sir + gas_fee_rates.action_creation_config.function_call_cost_per_byte.execution * (blob + NEAR_DA_FUNCTION_CALL_METHOD_NAME_BYTE_SIZE) + startup_cost + function_call_base_cost;
+          totalFee +=
+            (blob + NEAR_DA_FUNCTION_CALL_METHOD_NAME_BYTE_SIZE) *
+              gas_fee_rates.action_creation_config.function_call_cost_per_byte
+                .send_sir +
+            gas_fee_rates.action_creation_config.function_call_cost_per_byte
+              .execution *
+              (blob + NEAR_DA_FUNCTION_CALL_METHOD_NAME_BYTE_SIZE) +
+            startup_cost +
+            function_call_base_cost;
         }
         totalFee = totalFee * gasPrice;
 
@@ -235,4 +259,3 @@ app.use(limiter);
 app.listen(port, () => {
   console.log(`Example app listening at http://${host}:${port}`);
 });
-
