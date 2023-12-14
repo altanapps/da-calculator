@@ -1,7 +1,7 @@
 const axios = require("axios");
 const express = require("express");
 require("dotenv").config();
-
+const cors = require("cors");
 const {
   estimateFee,
   DEFAULT_ESTIMATE_GAS_PER_BLOB_BYTE,
@@ -162,6 +162,8 @@ async function estimateFeeNEAR(blobSizes) {
     var gasPrice = await fetchGasPrice("NEAR");
     var usdPrice = await fetchPrice("NEAR");
 
+    console.log("gasPrice", gasPrice);
+
     // Fetching protocol config
     const response = await fetch(
       "https://docs-demo.near-mainnet.quiknode.pro/",
@@ -171,16 +173,19 @@ async function estimateFeeNEAR(blobSizes) {
     if (gas_fee_rates) {
       try {
         const startup_cost = gas_fee_rates.action_receipt_creation_config.send_sir + gas_fee_rates.action_receipt_creation_config.execution;
+        console.log("startup_cost", startup_cost);
         const function_call_base_cost = gas_fee_rates.action_creation_config.function_call_cost.send_sir + gas_fee_rates.action_creation_config.function_call_cost.execution;
+        console.log("function_call_base_cost", function_call_base_cost);
         var totalFee = 0;
         for (let blob of blobSizes) {
+          console.log("func itself",(blob ) * gas_fee_rates.action_creation_config.function_call_cost_per_byte.send_sir + gas_fee_rates.action_creation_config.function_call_cost_per_byte.execution * (blob ));
           totalFee += (blob + NEAR_DA_FUNCTION_CALL_METHOD_NAME_BYTE_SIZE) * gas_fee_rates.action_creation_config.function_call_cost_per_byte.send_sir + gas_fee_rates.action_creation_config.function_call_cost_per_byte.execution * (blob + NEAR_DA_FUNCTION_CALL_METHOD_NAME_BYTE_SIZE) + startup_cost + function_call_base_cost;
         }
         totalFee = totalFee * gasPrice;
 
         // convert yoctoNEAR to NEAR
         totalFee = totalFee / 10 ** 24;
-
+        console.log("totalFee", totalFee);
         // convert NEAR to USD
         const usdFee = totalFee * usdPrice;
         return usdFee;
@@ -197,6 +202,7 @@ async function estimateFeeNEAR(blobSizes) {
 }
 //Returns the estimated fee in the Ethereum blockchain
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 3000; // Use the PORT environment variable if available
 const host = "0.0.0.0"; // Listen on all network interfaces
 
