@@ -182,7 +182,7 @@ async function estimateFeeNEAR(blobSizes) {
         totalFee = totalFee / 10 ** 24;
 
         // convert NEAR to USD
-        const usdFee = totalFee * 1.74;
+        const usdFee = totalFee * usdPrice;
         return usdFee;
       } catch (e) {
         console.error("Error parsing JSON:", e);
